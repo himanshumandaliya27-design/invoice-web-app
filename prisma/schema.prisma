@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Company {
+  id             String    @id @default(uuid())
+  name           String
+  gstin          String
+  logo_url       String?
+  address        String?
+  phone          String?
+  email          String?
+  currency       String    @default("INR")
+  bank_name      String?
+  account_number String?
+  ifsc_code      String?
+  upi_id         String?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  invoices       Invoice[]
+}
+
+model Customer {
+  id               String    @id @default(uuid())
+  name             String
+  email            String?
+  phone            String?
+  address          String?
+  gstin            String?
+  state            String?   // For place of supply and IGST/CGST/SGST calculation
+  is_deleted       Boolean   @default(false)
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  invoices         Invoice[]
+}
+
+model Product {
+  id           String        @id @default(uuid())
+  name         String
+  description  String?
+  price        Float
+  hsn_sac_code String?
+  tax_rate     Float         @default(0) // Default tax rate
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  invoiceItems InvoiceItem[]
+}
+
+model Invoice {
+  id               String        @id @default(uuid())
+  invoice_number   String        @unique
+  company_id       String
+  customer_id      String
+  place_of_supply  String?
+  date             DateTime      @default(now())
+  due_date         DateTime?
+  status           String        @default("DRAFT") // DRAFT, SENT, CANCELLED
+  sub_total        Float         @default(0)
+  tax_total        Float         @default(0)
+  grand_total      Float         @default(0)
+  paid_amount      Float?
+  balance_amount   Float?
+  notes            String?
+  terms_conditions String?
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+
+  company          Company       @relation(fields: [company_id], references: [id])
+  customer         Customer      @relation(fields: [customer_id], references: [id])
+  items            InvoiceItem[]
+
+  @@index([company_id])
+  @@index([customer_id])
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoice_id  String
+  product_id  String
+  quantity    Int
+  rate        Float
+  tax_rate    Float    @default(0)
+  tax_amount  Float    @default(0)
+  cgst_amount Float    @default(0)
+  sgst_amount Float    @default(0)
+  igst_amount Float    @default(0)
+  sub_total   Float    @default(0)
+  total_amount Float   @default(0)
+
+  invoice     Invoice  @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [product_id], references: [id])
+
+  @@index([invoice_id])
+  @@index([product_id])
+}
