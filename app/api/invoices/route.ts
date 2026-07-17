@@ -1,89 +1,51 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { generateInvoiceNumber, calculateTaxes } from '@/lib/invoice-utils'
-import { cookies } from 'next/headers'
+import { getActiveCompanyId } from '@/app/actions/company'
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status')
-    
-    const cookieStore = await cookies()
-    const activeCompanyId = cookieStore.get('activeCompanyId')?.value
-    
-    const whereClause: any = {}
-    if (status) whereClause.status = status
-    if (activeCompanyId) whereClause.company_id = activeCompanyId
-    
+    const companyId = await getActiveCompanyId()
+    if (!companyId) return NextResponse.json([])
+
     const invoices = await prisma.invoice.findMany({
-      where: whereClause,
-      include: {
-        customer: true,
-      },
+      where: { company_id: companyId },
+      include: { customer: true },
       orderBy: { created_at: 'desc' }
     })
     return NextResponse.json(invoices)
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch invoices' }, { status: 500 })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json()
-    const { company_id, customer_id, date, due_date, notes, terms_conditions, items } = body
+    const data = await req.json()
+    const companyId = await getActiveCompanyId()
+    if (!companyId) return NextResponse.json({ error: 'No active company' }, { status: 400 })
 
-    // 1. Get company and customer to calculate taxes
-    const company = await prisma.company.findUnique({ where: { id: company_id } })
-    const customer = await prisma.customer.findUnique({ where: { id: customer_id } })
-
-    if (!company || !customer) {
-      return NextResponse.json({ error: 'Company or Customer not found' }, { status: 400 })
-    }
-
-    // 1.5 Validate HSN/SAC on products
-    const productIds = items.map((i: any) => i.product_id)
-    const productsInDb = await prisma.product.findMany({ where: { id: { in: productIds } } })
-    const missingHsn = productsInDb.find(p => !p.hsn_sac_code || p.hsn_sac_code.trim() === '')
-    if (missingHsn) {
-      return NextResponse.json({ error: `Product "${missingHsn.name}" is missing an HSN/SAC code. This is required for GST compliance.` }, { status: 400 })
-    }
-
-    // Extract state codes from GSTIN if state is not provided directly
-    // Assuming first 2 characters of GSTIN represent the state code
-    const companyStateCode = company.gstin ? company.gstin.substring(0, 2) : '27'
-    const customerStateCode = customer.state || (customer.gstin ? customer.gstin.substring(0, 2) : '27')
-
-    // 2. Auto-calculate taxes
-    const { calculatedItems, sub_total, tax_total, grand_total } = calculateTaxes(items, companyStateCode, customerStateCode)
-
-    // 3. Auto-generate invoice number
-    const invoice_number = await generateInvoiceNumber(company_id)
-
-    // 4. Create Invoice
+    // Create the invoice along with its items
     const invoice = await prisma.invoice.create({
       data: {
-        invoice_number,
-        company_id,
-        customer_id,
-        date: new Date(date),
-        due_date: due_date ? new Date(due_date) : null,
-        notes,
-        terms_conditions,
-        sub_total,
-        tax_total,
-        grand_total,
+        company_id: companyId,
+        invoice_number: data.invoice_number,
+        date: new Date(data.date),
+        due_date: data.due_date ? new Date(data.due_date) : null,
+        status: data.status || 'DRAFT',
+        customer_id: data.customer_id,
+        sub_total: data.sub_total,
+        tax_total: data.tax_total,
+        grand_total: data.grand_total,
+        notes: data.notes || null,
+        terms: data.terms || null,
         items: {
-          create: calculatedItems.map(item => ({
-            product_id: item.product_id,
+          create: data.items.map((item: any) => ({
+            item_name: item.item_name,
+            description: item.description || null,
+            hsn_sac: item.hsn_sac || null,
             quantity: item.quantity,
             rate: item.rate,
             tax_rate: item.tax_rate,
-            tax_amount: item.tax_amount,
-            cgst_amount: item.cgst_amount,
-            sgst_amount: item.sgst_amount,
-            igst_amount: item.igst_amount,
-            sub_total: item.sub_total,
             total_amount: item.total_amount
           }))
         }
@@ -94,10 +56,9 @@ export async function POST(request: Request) {
         company: true
       }
     })
-
-    return NextResponse.json(invoice, { status: 201 })
-  } catch (error) {
-    console.error(error)
-    return NextResponse.json({ error: 'Failed to create invoice' }, { status: 500 })
+    
+    return NextResponse.json(invoice)
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

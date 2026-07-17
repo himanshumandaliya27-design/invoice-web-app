@@ -6,18 +6,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params
     const data = await req.json()
     
-    const customer = await prisma.customer.update({
+    const company = await prisma.company.update({
       where: { id },
       data: {
         name: data.name,
+        logo_base64: data.logo_base64 || null,
         address: data.address || null,
         mobile: data.mobile || null,
         email: data.email || null,
         gstin: data.gstin || null,
-        state: data.state || null
+        smtp_host: data.smtp_host || null,
+        smtp_port: data.smtp_port ? Number(data.smtp_port) : null,
+        smtp_user: data.smtp_user || null,
+        smtp_pass: data.smtp_pass || null,
       }
     })
-    return NextResponse.json(customer)
+    return NextResponse.json(company)
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
@@ -26,7 +30,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    await prisma.customer.delete({
+    await prisma.company.delete({
       where: { id }
     })
     return NextResponse.json({ success: true })

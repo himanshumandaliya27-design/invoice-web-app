@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getActiveCompanyId } from '@/app/actions/company'
 
 export async function GET() {
   try {
-    const companyId = await getActiveCompanyId()
-    if (!companyId) return NextResponse.json([])
-
-    const customers = await prisma.customer.findMany({
-      where: { company_id: companyId },
+    const companies = await prisma.company.findMany({
       orderBy: { created_at: 'desc' }
     })
-    return NextResponse.json(customers)
+    return NextResponse.json(companies)
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
@@ -20,21 +15,21 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json()
-    const companyId = await getActiveCompanyId()
-    if (!companyId) return NextResponse.json({ error: 'No active company' }, { status: 400 })
-
-    const customer = await prisma.customer.create({
+    const company = await prisma.company.create({
       data: {
-        company_id: companyId,
         name: data.name,
+        logo_base64: data.logo_base64 || null,
         address: data.address || null,
         mobile: data.mobile || null,
         email: data.email || null,
         gstin: data.gstin || null,
-        state: data.state || null
+        smtp_host: data.smtp_host || null,
+        smtp_port: data.smtp_port ? Number(data.smtp_port) : null,
+        smtp_user: data.smtp_user || null,
+        smtp_pass: data.smtp_pass || null,
       }
     })
-    return NextResponse.json(customer)
+    return NextResponse.json(company)
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

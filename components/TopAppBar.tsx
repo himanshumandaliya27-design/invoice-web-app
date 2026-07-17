@@ -16,7 +16,7 @@ export function TopAppBar() {
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await fetch('/api/companies')
+        const res = await fetch('/api/company')
         const data = await res.json()
         setCompanies(data)
         

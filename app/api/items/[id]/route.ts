@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const invoice = await prisma.invoice.findUnique({
+    const data = await req.json()
+    
+    const item = await prisma.item.update({
       where: { id },
-      include: {
-        items: true,
-        customer: true,
-        company: true
+      data: {
+        name: data.name,
+        description: data.description || null,
+        price: Number(data.price),
+        hsn_sac: data.hsn_sac || null,
+        tax_rate: Number(data.tax_rate) || 0
       }
     })
-    if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    return NextResponse.json(invoice)
+    return NextResponse.json(item)
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
@@ -22,7 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    await prisma.invoice.delete({
+    await prisma.item.delete({
       where: { id }
     })
     return NextResponse.json({ success: true })

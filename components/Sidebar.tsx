@@ -8,10 +8,10 @@ export function Sidebar() {
 
   const links = [
     { name: 'Dashboard', href: '/', icon: 'dashboard' },
-    { name: 'Invoices', href: '/invoices', icon: 'description' },
-    { name: 'Customers', href: '/customers', icon: 'group' },
-    { name: 'Products', href: '/products', icon: 'inventory_2' },
-    { name: 'Settings', href: '/settings', icon: 'settings' },
+    { name: 'Invoices', href: '/invoices', icon: 'receipt_long' },
+    { name: 'Customers', href: '/customers', icon: 'groups' },
+    { name: 'Items', href: '/items', icon: 'inventory_2' },
+    { name: 'Company', href: '/company', icon: 'business' },
   ]
 
   return (

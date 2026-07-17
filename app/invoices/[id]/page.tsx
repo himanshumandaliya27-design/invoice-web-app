@@ -167,10 +167,10 @@ export default function InvoiceDetailsPage() {
                 <tr key={item.id} className="border-b border-[#e9ecef] last:border-b-0">
                   <td className="py-3 px-3 text-[#555]">{idx + 1}</td>
                   <td className="py-3 px-3 text-[#1a1a1a]">
-                    <div className="font-semibold">{item.product.name}</div>
-                    {item.product.description && <div className="text-[11px] text-[#777] mt-1">{item.product.description}</div>}
+                    <div className="font-semibold">{item.item_name}</div>
+                    {item.description && <div className="text-[11px] text-[#777] mt-1">{item.description}</div>}
                   </td>
-                  <td className="py-3 px-3 text-[#555] text-center bg-[#f8f9fa]">{item.product.hsn_sac_code || '-'}</td>
+                  <td className="py-3 px-3 text-[#555] text-center bg-[#f8f9fa]">{item.hsn_sac || '-'}</td>
                   <td className="py-3 px-3 text-[#333] text-right">{item.quantity}</td>
                   <td className="py-3 px-3 text-[#333] text-right">{item.rate.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                   <td className="py-3 px-3 text-[#333] text-right">{item.tax_rate}%</td>
@@ -200,7 +200,7 @@ export default function InvoiceDetailsPage() {
         </div>
 
         {/* Footer info */}
-        {(invoice.notes || invoice.terms_conditions) && (
+        {(invoice.notes || invoice.terms) && (
           <div className="grid grid-cols-2 gap-8 text-[11px] pt-4 border-t border-[#e9ecef]">
             {invoice.notes && (
               <div>
@@ -208,10 +208,10 @@ export default function InvoiceDetailsPage() {
                 <p className="text-[#555] whitespace-pre-wrap leading-relaxed">{invoice.notes}</p>
               </div>
             )}
-            {invoice.terms_conditions && (
+            {invoice.terms && (
               <div>
                 <h4 className="font-bold text-[#0033a0] uppercase tracking-wider mb-2">Terms & Conditions</h4>
-                <p className="text-[#555] whitespace-pre-wrap leading-relaxed">{invoice.terms_conditions}</p>
+                <p className="text-[#555] whitespace-pre-wrap leading-relaxed">{invoice.terms}</p>
               </div>
             )}
           </div>

@@ -15,18 +15,27 @@ export default async function InvoicesPage() {
     orderBy: { created_at: 'desc' }
   })
 
-  // Format dates / nulls if needed
-  const safeInvoices = invoices.map(i => ({
-    id: i.id,
-    invoice_number: i.invoice_number,
-    date: i.date.toISOString(),
-    grand_total: i.grand_total,
-    status: i.status,
-    customer: {
-      name: i.customer.name,
-      email: i.customer.email || undefined
+  // Calculate Overdue dynamically
+  const now = new Date()
+  
+  const safeInvoices = invoices.map(i => {
+    let currentStatus = i.status
+    if (currentStatus !== 'PAID' && currentStatus !== 'CANCELLED' && i.due_date && new Date(i.due_date) < now) {
+      currentStatus = 'OVERDUE'
     }
-  }))
+
+    return {
+      id: i.id,
+      invoice_number: i.invoice_number,
+      date: i.date,
+      due_date: i.due_date,
+      status: currentStatus,
+      grand_total: i.grand_total,
+      customer: {
+        name: i.customer.name
+      }
+    }
+  })
 
   return <InvoicesClient initialInvoices={safeInvoices} />
 }

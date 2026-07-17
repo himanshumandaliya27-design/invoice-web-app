@@ -7,11 +7,11 @@ export async function GET() {
     const companyId = await getActiveCompanyId()
     if (!companyId) return NextResponse.json([])
 
-    const customers = await prisma.customer.findMany({
+    const items = await prisma.item.findMany({
       where: { company_id: companyId },
       orderBy: { created_at: 'desc' }
     })
-    return NextResponse.json(customers)
+    return NextResponse.json(items)
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
@@ -23,18 +23,17 @@ export async function POST(req: NextRequest) {
     const companyId = await getActiveCompanyId()
     if (!companyId) return NextResponse.json({ error: 'No active company' }, { status: 400 })
 
-    const customer = await prisma.customer.create({
+    const item = await prisma.item.create({
       data: {
         company_id: companyId,
         name: data.name,
-        address: data.address || null,
-        mobile: data.mobile || null,
-        email: data.email || null,
-        gstin: data.gstin || null,
-        state: data.state || null
+        description: data.description || null,
+        price: Number(data.price),
+        hsn_sac: data.hsn_sac || null,
+        tax_rate: Number(data.tax_rate) || 0
       }
     })
-    return NextResponse.json(customer)
+    return NextResponse.json(item)
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

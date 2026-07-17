@@ -14,14 +14,13 @@ export default async function CustomersPage() {
     orderBy: { created_at: 'desc' }
   })
 
-  // Format dates / nulls if needed, though they match the expected type
   const safeCustomers = customers.map(c => ({
     id: c.id,
     name: c.name,
-    email: c.email,
-    phone: c.phone,
-    gstin: c.gstin,
     address: c.address,
+    mobile: c.mobile,
+    email: c.email,
+    gstin: c.gstin,
     state: c.state
   }))
 

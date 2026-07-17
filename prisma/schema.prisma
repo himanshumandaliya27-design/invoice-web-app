@@ -1,106 +1,105 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-3.0.x", "rhel-openssl-1.0.x"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = "postgresql://postgres.siwceqvuesostdxgvwsd:Himanshu%40123@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
-  directUrl = "postgresql://postgres:Himanshu%40123@db.siwceqvuesostdxgvwsd.supabase.co:5432/postgres"
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Company {
-  id             String    @id @default(uuid())
+  id             String    @id @default(cuid())
   name           String
-  gstin          String
-  logo_url       String?
+  logo_base64    String?   // Base64 string of the uploaded png/jpeg
   address        String?
-  phone          String?
+  mobile         String?
   email          String?
-  currency       String    @default("INR")
-  bank_name      String?
-  account_number String?
-  ifsc_code      String?
-  upi_id         String?
-  smtp_host      String?   @default("smtp.gmail.com")
-  smtp_port      Int?      @default(587)
+  gstin          String?
+  
+  // SMTP credentials for sending invoice emails
+  smtp_host      String?
+  smtp_port      Int?
   smtp_user      String?
   smtp_pass      String?
+
   created_at     DateTime  @default(now())
   updated_at     DateTime  @updatedAt
+
+  customers      Customer[]
+  items          Item[]
   invoices       Invoice[]
 }
 
 model Customer {
-  id               String    @id @default(uuid())
-  name             String
-  email            String?
-  phone            String?
-  address          String?
-  gstin            String?
-  state            String?   // For place of supply and IGST/CGST/SGST calculation
-  is_deleted       Boolean   @default(false)
-  created_at       DateTime  @default(now())
-  updated_at       DateTime  @updatedAt
-  invoices         Invoice[]
+  id         String   @id @default(cuid())
+  company_id String
+  company    Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  
+  name       String
+  address    String?
+  mobile     String?
+  email      String?
+  gstin      String?
+  state      String?  // useful for IGST/CGST/SGST calculations
+  
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  invoices   Invoice[]
 }
 
-model Product {
-  id           String        @id @default(uuid())
-  name         String
-  description  String?
-  price        Float
-  hsn_sac_code String?
-  tax_rate     Float         @default(0) // Default tax rate
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
-  invoiceItems InvoiceItem[]
+model Item {
+  id          String   @id @default(cuid())
+  company_id  String
+  company     Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  price       Float
+  hsn_sac     String?
+  tax_rate    Float    @default(18) // GST percentage
+  
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }
 
 model Invoice {
-  id               String        @id @default(uuid())
-  invoice_number   String        @unique
-  company_id       String
-  customer_id      String
-  place_of_supply  String?
-  date             DateTime      @default(now())
-  due_date         DateTime?
-  status           String        @default("DRAFT") // DRAFT, SENT, CANCELLED
-  sub_total        Float         @default(0)
-  tax_total        Float         @default(0)
-  grand_total      Float         @default(0)
-  paid_amount      Float?
-  balance_amount   Float?
-  notes            String?
-  terms_conditions String?
-  created_at       DateTime      @default(now())
-  updated_at       DateTime      @updatedAt
+  id             String   @id @default(cuid())
+  invoice_number String   @unique
+  date           DateTime
+  due_date       DateTime?
+  status         String   @default("DRAFT") // DRAFT, SENT, PAID, CANCELLED
+  
+  company_id     String
+  company        Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  
+  customer_id    String
+  customer       Customer @relation(fields: [customer_id], references: [id])
+  
+  sub_total      Float
+  tax_total      Float
+  grand_total    Float
+  
+  notes          String?
+  terms          String?
+  
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
-  company          Company       @relation(fields: [company_id], references: [id])
-  customer         Customer      @relation(fields: [customer_id], references: [id])
-  items            InvoiceItem[]
-
-  @@index([company_id])
-  @@index([customer_id])
+  items          InvoiceItem[]
 }
 
 model InvoiceItem {
-  id          String   @id @default(uuid())
-  invoice_id  String
-  product_id  String
-  quantity    Int
-  rate        Float
-  tax_rate    Float    @default(0)
-  tax_amount  Float    @default(0)
-  cgst_amount Float    @default(0)
-  sgst_amount Float    @default(0)
-  igst_amount Float    @default(0)
-  sub_total   Float    @default(0)
-  total_amount Float   @default(0)
-
-  invoice     Invoice  @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
-  product     Product  @relation(fields: [product_id], references: [id])
-
-  @@index([invoice_id])
-  @@index([product_id])
+  id           String  @id @default(cuid())
+  invoice_id   String
+  invoice      Invoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  
+  item_name    String
+  description  String?
+  hsn_sac      String?
+  quantity     Int
+  rate         Float
+  tax_rate     Float
+  total_amount Float
 }
