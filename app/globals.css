@@ -45,13 +45,13 @@
   --spacing-xl: 32px;
   --spacing-container-max: 1200px;
   
-  --font-headline-lg-mobile: var(--font-inter);
-  --font-table-data: var(--font-inter);
-  --font-label-md: var(--font-inter);
-  --font-headline-md: var(--font-inter);
-  --font-headline-lg: var(--font-inter);
-  --font-body-md: var(--font-inter);
-  --font-body-sm: var(--font-inter);
+  --font-headline-lg-mobile: 'Inter', sans-serif;
+  --font-table-data: 'Inter', sans-serif;
+  --font-label-md: 'Inter', sans-serif;
+  --font-headline-md: 'Inter', sans-serif;
+  --font-headline-lg: 'Inter', sans-serif;
+  --font-body-md: 'Inter', sans-serif;
+  --font-body-sm: 'Inter', sans-serif;
 
   --text-headline-lg-mobile: 24px;
   --text-headline-lg-mobile--line-height: 32px;
