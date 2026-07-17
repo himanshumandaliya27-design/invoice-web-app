@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -31,7 +31,7 @@ type Product = {
   price: number
 }
 
-export default function SearchPage() {
+function SearchResults() {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
 
@@ -149,5 +149,13 @@ export default function SearchPage() {
         </div>
       )}
     </main>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="p-lg lg:p-xl text-center">Loading search results...</div>}>
+      <SearchResults />
+    </Suspense>
   )
 }
