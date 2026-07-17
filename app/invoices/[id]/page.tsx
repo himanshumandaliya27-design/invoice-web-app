@@ -24,24 +24,19 @@ export default function InvoiceDetailsPage() {
   if (!invoice || invoice.error) return <div className="p-xl text-center text-error">Invoice not found</div>
 
   const handleSendEmail = async () => {
-    if (!invoice.customer.email) {
-      alert('This customer does not have an email address saved.');
-      return;
-    }
-
-    const subject = encodeURIComponent(`Invoice ${invoice.invoice_number}`);
-    const host = window.location.origin;
-    const body = encodeURIComponent(`Dear ${invoice.customer.name},\n\nPlease find your invoice ${invoice.invoice_number} at the following link:\n\n${host}/api/invoices/${invoice.id}/pdf\n\nAmount Due: ₹${invoice.grand_total.toFixed(2)}\n\nThank you for your business.`);
-    
-    // Open default mail client
-    window.location.href = `mailto:${invoice.customer.email}?subject=${subject}&body=${body}`;
-
-    // Mark as sent in the database
+    if (!confirm('Are you sure you want to send this invoice?')) return
     try {
-      await fetch(`/api/invoices/${id}/mark-sent`, { method: 'POST' })
-      setInvoice({...invoice, status: 'SENT'})
+      const res = await fetch(`/api/invoices/${id}/send`, { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        alert('Email sent successfully!')
+        setInvoice({...invoice, status: 'SENT'})
+      } else {
+        alert('Failed to send email: ' + (data.error || 'Unknown error'))
+      }
     } catch (error) {
       console.error(error)
+      alert('Failed to send email. Please check your connection.')
     }
   }
 

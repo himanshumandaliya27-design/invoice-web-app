@@ -16,6 +16,10 @@ type Company = {
   account_number: string | null
   ifsc_code: string | null
   upi_id: string | null
+  smtp_host: string | null
+  smtp_port: number | null
+  smtp_user: string | null
+  smtp_pass: string | null
 }
 
 const emptyCompany: Omit<Company, 'id'> = {
@@ -28,7 +32,11 @@ const emptyCompany: Omit<Company, 'id'> = {
   bank_name: '',
   account_number: '',
   ifsc_code: '',
-  upi_id: ''
+  upi_id: '',
+  smtp_host: 'smtp.gmail.com',
+  smtp_port: 587,
+  smtp_user: '',
+  smtp_pass: ''
 }
 
 export default function SettingsPage() {
@@ -311,6 +319,59 @@ export default function SettingsPage() {
                 onChange={handleChange}
                 className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-sm text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-on-surface"
               />
+            </div>
+          </div>
+
+          <div className="bg-surface border border-outline-variant rounded-xl p-lg space-y-md">
+            <h3 className="font-headline-md text-headline-md text-primary border-b border-outline-variant pb-sm">Email Setup (SMTP)</h3>
+            <p className="font-body-sm text-on-surface-variant">Enter your email and App Password to automatically send invoices.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+              <div>
+                <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">SMTP Host</label>
+                <input 
+                  name="smtp_host" 
+                  value={company.smtp_host || ''} 
+                  onChange={handleChange}
+                  placeholder="smtp.gmail.com"
+                  className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-sm text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-on-surface"
+                />
+              </div>
+              <div>
+                <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">SMTP Port</label>
+                <input 
+                  type="number"
+                  name="smtp_port" 
+                  value={company.smtp_port || 587} 
+                  onChange={(e) => { if(company) setCompany({ ...company, smtp_port: parseInt(e.target.value) || 587 }) }}
+                  className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-sm text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-on-surface"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+              <div>
+                <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">Email Address (SMTP User)</label>
+                <input 
+                  type="email"
+                  name="smtp_user" 
+                  value={company.smtp_user || ''} 
+                  onChange={handleChange}
+                  placeholder="your-email@gmail.com"
+                  className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-sm text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-on-surface"
+                />
+              </div>
+              <div>
+                <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">App Password (SMTP Password)</label>
+                <input 
+                  type="password"
+                  name="smtp_pass" 
+                  value={company.smtp_pass || ''} 
+                  onChange={handleChange}
+                  placeholder="16-digit App Password"
+                  className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-sm text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-on-surface"
+                />
+              </div>
             </div>
           </div>
         </div>

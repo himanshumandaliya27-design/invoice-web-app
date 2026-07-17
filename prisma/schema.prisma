@@ -22,6 +22,10 @@ model Company {
   account_number String?
   ifsc_code      String?
   upi_id         String?
+  smtp_host      String?   @default("smtp.gmail.com")
+  smtp_port      Int?      @default(587)
+  smtp_user      String?
+  smtp_pass      String?
   created_at     DateTime  @default(now())
   updated_at     DateTime  @updatedAt
   invoices       Invoice[]
