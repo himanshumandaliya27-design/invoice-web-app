@@ -36,9 +36,9 @@ export function generateInvoicePDF(invoice: any, output: 'download' | 'blob' | '
   // Bill To
   yPos = 55
   doc.setFontSize(12)
-  doc.setFont(undefined, 'bold')
+  doc.setFont('helvetica', 'bold')
   doc.text('Bill To:', 14, yPos)
-  doc.setFont(undefined, 'normal')
+  doc.setFont('helvetica', 'normal')
   yPos += 7
   doc.setFontSize(10)
   doc.text(invoice.customer.name, 14, yPos)
@@ -77,26 +77,26 @@ export function generateInvoicePDF(invoice: any, output: 'download' | 'blob' | '
   doc.text(`Rs ${invoice.tax_total.toFixed(2)}`, 196, finalY + 17, { align: 'right' })
 
   doc.setFontSize(12)
-  doc.setFont(undefined, 'bold')
+  doc.setFont('helvetica', 'bold')
   doc.text('Grand Total:', 140, finalY + 27)
   doc.text(`Rs ${invoice.grand_total.toFixed(2)}`, 196, finalY + 27, { align: 'right' })
 
   // Notes
-  doc.setFont(undefined, 'normal')
+  doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   let currentY = finalY + 40
   if (invoice.notes) {
-    doc.setFont(undefined, 'bold')
+    doc.setFont('helvetica', 'bold')
     doc.text('Notes:', 14, currentY)
-    doc.setFont(undefined, 'normal')
+    doc.setFont('helvetica', 'normal')
     doc.text(invoice.notes, 14, currentY + 5)
     currentY += 15
   }
   
   if (invoice.terms) {
-    doc.setFont(undefined, 'bold')
+    doc.setFont('helvetica', 'bold')
     doc.text('Terms & Conditions:', 14, currentY)
-    doc.setFont(undefined, 'normal')
+    doc.setFont('helvetica', 'normal')
     doc.text(invoice.terms, 14, currentY + 5)
   }
 
