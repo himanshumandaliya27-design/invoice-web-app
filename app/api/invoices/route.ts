@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateInvoiceNumber, calculateTaxes } from '@/lib/invoice-utils'
+import { cookies } from 'next/headers'
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     
-    const whereClause = status ? { status } : {}
+    const cookieStore = await cookies()
+    const activeCompanyId = cookieStore.get('activeCompanyId')?.value
+    
+    const whereClause: any = {}
+    if (status) whereClause.status = status
+    if (activeCompanyId) whereClause.company_id = activeCompanyId
     
     const invoices = await prisma.invoice.findMany({
       where: whereClause,

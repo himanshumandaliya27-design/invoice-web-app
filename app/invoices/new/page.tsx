@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { calculateTaxes, numberToWords } from '@/lib/invoice-utils'
+import { getActiveCompanyId } from '@/app/actions/company'
 
 export default function NewInvoicePage() {
   const router = useRouter()
@@ -46,11 +47,17 @@ export default function NewInvoicePage() {
     Promise.all([
       fetchCustomers(),
       fetch('/api/products').then(res => res.json()),
-      fetch('/api/companies').then(res => res.json())
-    ]).then(([_, productsData, companiesData]) => {
+      fetch('/api/companies').then(res => res.json()),
+      getActiveCompanyId()
+    ]).then(([_, productsData, companiesData, activeId]) => {
       setProducts(productsData)
       if (companiesData.length > 0) {
-        setCompany(companiesData[0])
+        if (activeId) {
+          const matched = companiesData.find((c: any) => c.id === activeId)
+          setCompany(matched || companiesData[0])
+        } else {
+          setCompany(companiesData[0])
+        }
       }
       setLoading(false)
     })

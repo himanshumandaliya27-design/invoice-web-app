@@ -1,17 +1,50 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { setActiveCompany, getActiveCompanyId } from '@/app/actions/company'
+
+type Company = { id: string, name: string }
 
 export function TopAppBar() {
   const [search, setSearch] = useState('')
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [activeId, setActiveId] = useState<string | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await fetch('/api/companies')
+        const data = await res.json()
+        setCompanies(data)
+        
+        const currentActive = await getActiveCompanyId()
+        if (currentActive && data.some((c: Company) => c.id === currentActive)) {
+          setActiveId(currentActive)
+        } else if (data.length > 0) {
+          setActiveId(data[0].id)
+          await setActiveCompany(data[0].id)
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    loadData()
+  }, [])
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && search.trim()) {
       router.push(`/search?q=${encodeURIComponent(search.trim())}`)
     }
+  }
+
+  const handleCompanyChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newId = e.target.value
+    setActiveId(newId)
+    await setActiveCompany(newId)
+    router.refresh() // Refresh page to apply new active company to server components
   }
 
   return (
@@ -35,12 +68,23 @@ export function TopAppBar() {
       </div>
       
       <div className="flex items-center gap-md">
+        {companies.length > 0 && (
+          <select 
+            value={activeId || ''} 
+            onChange={handleCompanyChange}
+            className="hidden lg:block px-md py-sm bg-surface-container border border-outline-variant rounded-lg font-label-md text-label-md text-on-surface focus:outline-none focus:border-primary max-w-[200px] truncate"
+          >
+            {companies.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        )}
         <Link href="/invoices/new" className="hidden lg:flex px-md py-sm bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-primary-container transition-colors scale-95 duration-150 active:scale-90 items-center gap-xs">
           <span className="material-symbols-outlined text-[18px]">add</span>
-          Create New Invoice
+          Create New
         </Link>
         <Link href="/settings" className="hidden lg:flex px-md py-sm text-primary font-label-md text-label-md border border-primary rounded-lg hover:bg-surface-container transition-colors scale-95 duration-150">
-          Switch Company
+          Settings
         </Link>
       </div>
     </header>

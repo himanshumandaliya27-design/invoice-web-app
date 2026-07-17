@@ -1,27 +1,34 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Dashboard() {
+  const cookieStore = await cookies()
+  const activeCompanyId = cookieStore.get('activeCompanyId')?.value
+
+  // Base where clause, filter by company if activeCompanyId exists
+  const baseWhere = activeCompanyId ? { company_id: activeCompanyId } : {}
   const [invoices, totalOutstanding, totalDrafts] = await Promise.all([
     prisma.invoice.findMany({
+      where: baseWhere,
       include: { customer: true },
       orderBy: { created_at: 'desc' },
       take: 5
     }),
     prisma.invoice.aggregate({
-      where: { status: 'SENT' }, // Treating sent as outstanding
+      where: { ...baseWhere, status: 'SENT' }, // Treating sent as outstanding
       _sum: { grand_total: true }
     }),
     prisma.invoice.aggregate({
-      where: { status: 'DRAFT' },
+      where: { ...baseWhere, status: 'DRAFT' },
       _sum: { grand_total: true }
     })
   ])
 
-  const draftsCount = await prisma.invoice.count({ where: { status: 'DRAFT' } })
-  const overdueCount = await prisma.invoice.count({ where: { status: 'SENT' } }) // Using sent as overdue for demo
+  const draftsCount = await prisma.invoice.count({ where: { ...baseWhere, status: 'DRAFT' } })
+  const overdueCount = await prisma.invoice.count({ where: { ...baseWhere, status: 'SENT' } }) // Using sent as overdue for demo
 
   const outstandingTotal = totalOutstanding._sum.grand_total || 0
   const draftsTotal = totalDrafts._sum.grand_total || 0
