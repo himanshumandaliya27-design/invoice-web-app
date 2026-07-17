@@ -43,7 +43,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ### Environment & Deployment
 1. **DATABASE_URL**: Must point to a production-grade SQL database (e.g., PostgreSQL or Turso) rather than local SQLite `dev.db`.
-2. **Authentication**: This app has NO built-in auth. For production, you MUST place this behind an auth proxy, VPN, or implement NextAuth/Clerk. Otherwise, sensitive Company Bank details and Customer information will be exposed.
+2. **Authentication**: This app uses Auth.js (NextAuth) to secure routes. Make sure to provide `AUTH_SECRET`, `AUTH_GOOGLE_ID`, and `AUTH_GOOGLE_SECRET` (or GitHub equivalents) in production.
 3. **Database Migrations**: Before deploying, run `npx prisma migrate deploy` to apply schema changes (like the newly added `@@index` performance optimizations) to your production database.
 4. **Rate Limiting**: Not natively handled by Next.js. Implement rate limiting on `/api/invoices/[id]/pdf` via Vercel Edge Middleware or an API Gateway, as PDF generation via Puppeteer is resource-intensive.
 5. **Backups**: Ensure your database provider has automated daily backups for invoice records.

@@ -89,7 +89,7 @@ export function generateInvoicePDF(invoice: any, output: 'download' | 'blob' | '
     styles: { fontSize: 9 }
   })
 
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 30
+  const finalY = (doc as any).lastAutoTable.finalY || billToY + 30
 
   // Totals
   doc.text('Sub Total:', 140, finalY + 10)

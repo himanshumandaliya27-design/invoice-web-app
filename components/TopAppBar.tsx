@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 import { setActiveCompany, getActiveCompanyId } from '@/app/actions/company'
 
 type Company = { id: string, name: string }
@@ -86,6 +87,13 @@ export function TopAppBar() {
         <Link href="/settings" className="hidden lg:flex px-md py-sm text-primary font-label-md text-label-md border border-primary rounded-lg hover:bg-surface-container transition-colors scale-95 duration-150">
           Settings
         </Link>
+        <button 
+          onClick={() => signOut()}
+          className="hidden lg:flex px-md py-sm text-error font-label-md text-label-md border border-error rounded-lg hover:bg-error-container transition-colors scale-95 duration-150 items-center gap-xs"
+        >
+          <span className="material-symbols-outlined text-[18px]">logout</span>
+          Sign Out
+        </button>
       </div>
     </header>
   )
