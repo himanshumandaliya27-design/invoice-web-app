@@ -28,7 +28,15 @@ export default async function Dashboard() {
   ])
 
   const draftsCount = await prisma.invoice.count({ where: { ...baseWhere, status: 'DRAFT' } })
-  const overdueCount = await prisma.invoice.count({ where: { ...baseWhere, status: 'SENT' } }) // Using sent as overdue for demo
+  const overdueCount = await prisma.invoice.count({ 
+    where: { 
+      ...baseWhere, 
+      status: 'SENT',
+      due_date: {
+        lt: new Date()
+      }
+    } 
+  }) 
 
   const outstandingTotal = totalOutstanding._sum.grand_total || 0
   const draftsTotal = totalDrafts._sum.grand_total || 0
