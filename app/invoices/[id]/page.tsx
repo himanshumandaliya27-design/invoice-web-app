@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { generateInvoicePDF } from '@/lib/generate-pdf-client'
 
 export default function InvoiceDetailsPage() {
   const params = useParams()
@@ -26,9 +27,14 @@ export default function InvoiceDetailsPage() {
   const handleSendEmail = async () => {
     if (!confirm('Are you sure you want to send this invoice?')) return
     try {
-      const res = await fetch(`/api/invoices/${id}/send`, { method: 'POST' })
+      const pdfBase64 = generateInvoicePDF(invoice, 'datauristring')
+      const res = await fetch(`/api/invoices/${id}/send`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdfBase64 })
+      })
       const data = await res.json()
-      if (data.success) {
+      if (res.ok && data.success) {
         alert('Email sent successfully!')
         setInvoice({...invoice, status: 'SENT'})
       } else {
@@ -36,8 +42,12 @@ export default function InvoiceDetailsPage() {
       }
     } catch (error) {
       console.error(error)
-      alert('Failed to send email. Please check your connection.')
+      alert('Failed to send email. Please check your connection or company SMTP settings.')
     }
+  }
+
+  const handleDownloadPDF = () => {
+    generateInvoicePDF(invoice, 'download')
   }
 
   // Formatting date
@@ -63,15 +73,13 @@ export default function InvoiceDetailsPage() {
         </div>
         
         <div className="flex justify-end space-x-sm w-full sm:w-auto">
-          <a 
-            href={`/api/invoices/${id}/pdf`} 
-            target="_blank" 
-            rel="noreferrer" 
+          <button 
+            onClick={handleDownloadPDF}
             className="px-md py-sm text-primary font-label-md text-label-md border border-primary rounded-lg hover:bg-surface-container transition-colors flex items-center justify-center gap-xs"
           >
             <span className="material-symbols-outlined text-[18px]">download</span>
             Download PDF
-          </a>
+          </button>
           <button 
             onClick={handleSendEmail} 
             className="px-md py-sm bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-primary-container transition-colors flex items-center justify-center gap-xs"
