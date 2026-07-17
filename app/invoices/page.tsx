@@ -12,6 +12,7 @@ type Invoice = {
   status: string
   customer: {
     name: string
+    email?: string
   }
 }
 
@@ -51,17 +52,23 @@ export default function InvoicesPage() {
     }
   }
 
-  const handleSendEmail = async (id: string) => {
-    if (!confirm('Are you sure you want to send this invoice?')) return
+  const handleSendEmail = async (invoice: Invoice) => {
+    if (!invoice.customer.email) {
+      alert('This customer does not have an email address saved.');
+      return;
+    }
+
+    const subject = encodeURIComponent(`Invoice ${invoice.invoice_number}`);
+    const host = window.location.origin;
+    const body = encodeURIComponent(`Dear ${invoice.customer.name},\n\nPlease find your invoice ${invoice.invoice_number} at the following link:\n\n${host}/api/invoices/${invoice.id}/pdf\n\nAmount Due: ₹${invoice.grand_total.toFixed(2)}\n\nThank you for your business.`);
+    
+    // Open default mail client
+    window.location.href = `mailto:${invoice.customer.email}?subject=${subject}&body=${body}`;
+
+    // Mark as sent in the database
     try {
-      const res = await fetch(`/api/invoices/${id}/send`, { method: 'POST' })
-      const data = await res.json()
-      if (data.success) {
-        alert('Email sent successfully!')
-        fetchInvoices()
-      } else {
-        alert('Failed to send email: ' + (data.error || 'Unknown error'))
-      }
+      await fetch(`/api/invoices/${invoice.id}/mark-sent`, { method: 'POST' })
+      fetchInvoices()
     } catch (error) {
       console.error(error)
     }
@@ -127,7 +134,7 @@ export default function InvoicesPage() {
                           <a href={`/api/invoices/${invoice.id}/pdf`} target="_blank" rel="noreferrer" className="p-2 text-gray-600 hover:bg-gray-100 rounded" title="Download PDF">
                             <FileText className="w-4 h-4" />
                           </a>
-                          <button onClick={() => handleSendEmail(invoice.id)} className="p-2 text-blue-600 hover:bg-blue-50 rounded" title="Send Email">
+                          <button onClick={() => handleSendEmail(invoice)} className="p-2 text-blue-600 hover:bg-blue-50 rounded" title="Send Email">
                             <Mail className="w-4 h-4" />
                           </button>
                         </div>
