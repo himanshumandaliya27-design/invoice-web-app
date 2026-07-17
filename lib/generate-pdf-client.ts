@@ -5,19 +5,40 @@ export function generateInvoicePDF(invoice: any, output: 'download' | 'blob' | '
   const doc = new jsPDF()
 
   // Company details
+  let currentY = 14
+  
+  if (invoice.company.logo_base64) {
+    try {
+      const format = invoice.company.logo_base64.includes('image/png') ? 'PNG' : 'JPEG'
+      const props = doc.getImageProperties(invoice.company.logo_base64)
+      const ratio = props.width / props.height
+      let imgWidth = 50
+      let imgHeight = imgWidth / ratio
+      if (imgHeight > 20) {
+        imgHeight = 20
+        imgWidth = imgHeight * ratio
+      }
+      doc.addImage(invoice.company.logo_base64, format, 14, currentY, imgWidth, imgHeight)
+      currentY += imgHeight + 6
+    } catch (e) {
+      console.error('Error adding logo to PDF', e)
+    }
+  }
+  
   doc.setFontSize(20)
-  doc.text(invoice.company.name, 14, 22)
+  doc.text(invoice.company.name, 14, currentY + 6)
+  currentY += 12
+  
   doc.setFontSize(10)
   doc.setTextColor(100)
   
-  let yPos = 30
   if (invoice.company.address) {
-    doc.text(invoice.company.address, 14, yPos)
-    yPos += 5
+    doc.text(invoice.company.address, 14, currentY)
+    currentY += 5
   }
   if (invoice.company.gstin) {
-    doc.text(`GSTIN: ${invoice.company.gstin}`, 14, yPos)
-    yPos += 5
+    doc.text(`GSTIN: ${invoice.company.gstin}`, 14, currentY)
+    currentY += 5
   }
   
   // Invoice title
@@ -34,26 +55,27 @@ export function generateInvoicePDF(invoice: any, output: 'download' | 'blob' | '
   }
 
   // Bill To
-  yPos = 55
+  let billToY = Math.max(currentY + 10, 55)
   doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
-  doc.text('Bill To:', 14, yPos)
+  doc.text('Bill To:', 14, billToY)
   doc.setFont('helvetica', 'normal')
-  yPos += 7
+  billToY += 7
   doc.setFontSize(10)
-  doc.text(invoice.customer.name, 14, yPos)
-  yPos += 5
+  doc.text(invoice.customer.name, 14, billToY)
+  billToY += 5
   if (invoice.customer.address) {
-    doc.text(invoice.customer.address, 14, yPos)
-    yPos += 5
+    doc.text(invoice.customer.address, 14, billToY)
+    billToY += 5
   }
   if (invoice.customer.gstin) {
-    doc.text(`GSTIN: ${invoice.customer.gstin}`, 14, yPos)
+    doc.text(`GSTIN: ${invoice.customer.gstin}`, 14, billToY)
+    billToY += 5
   }
 
   // Items table
   autoTable(doc, {
-    startY: yPos + 10,
+    startY: billToY + 5,
     head: [['Item & Description', 'Qty', 'Rate (Rs)', 'GST %', 'Total (Rs)']],
     body: invoice.items.map((item: any) => [
       item.item_name + (item.description ? `\n${item.description}` : '') + (item.hsn_sac ? `\nHSN: ${item.hsn_sac}` : ''),
@@ -84,7 +106,7 @@ export function generateInvoicePDF(invoice: any, output: 'download' | 'blob' | '
   // Notes
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
-  let currentY = finalY + 40
+  currentY = finalY + 40
   if (invoice.notes) {
     doc.setFont('helvetica', 'bold')
     doc.text('Notes:', 14, currentY)
