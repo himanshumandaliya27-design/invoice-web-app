@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import nodemailer from 'nodemailer'
-import pdfMake from 'pdfmake/build/pdfmake'
+import PdfPrinter from 'pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 import { TDocumentDefinitions } from 'pdfmake/interfaces'
-
-(pdfMake as any).vfs = (pdfFonts as any).pdfMake ? (pdfFonts as any).pdfMake.vfs : (pdfFonts as any).vfs;
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -139,15 +137,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     }
 
-    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
-      try {
-        const pdfDocGenerator = pdfMake.createPdf(docDefinition as any)
-        ;(pdfDocGenerator as any).getBuffer((buffer: Uint8Array) => {
-          resolve(Buffer.from(buffer))
-        })
-      } catch (err) {
-        reject(err)
+    const vfs = (pdfFonts as any).pdfMake ? (pdfFonts as any).pdfMake.vfs : (pdfFonts as any).vfs;
+    
+    const fonts = {
+      Roboto: {
+        normal: Buffer.from(vfs['Roboto-Regular.ttf'], 'base64'),
+        bold: Buffer.from(vfs['Roboto-Medium.ttf'], 'base64'),
+        italics: Buffer.from(vfs['Roboto-Italic.ttf'], 'base64'),
+        bolditalics: Buffer.from(vfs['Roboto-MediumItalic.ttf'], 'base64')
       }
+    };
+
+    const printer = new PdfPrinter(fonts);
+    const pdfDoc = printer.createPdfKitDocument(docDefinition as any);
+
+    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      pdfDoc.on('data', (chunk: Buffer) => chunks.push(chunk));
+      pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
+      pdfDoc.on('error', (err: any) => reject(err));
+      pdfDoc.end();
     })
 
     // Setup Nodemailer
