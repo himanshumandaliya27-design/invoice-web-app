@@ -29,13 +29,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       },
     })
 
-    // Fetch PDF from our own endpoint (simulated here by generating the URL)
-    const host = request.headers.get('host')
-    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https'
-    const pdfUrl = `${protocol}://${host}/api/invoices/${invoice.id}/pdf`
-    
-    const pdfResponse = await fetch(pdfUrl)
-    const pdfBuffer = await pdfResponse.arrayBuffer()
+    // Generate PDF buffer directly instead of fetching our own endpoint
+    // This avoids networking issues on serverless functions like Netlify
+    const { generateInvoicePdfBuffer } = await import('@/lib/generate-pdf')
+    const pdfBuffer = await generateInvoicePdfBuffer(invoice)
 
     const info = await transporter.sendMail({
       from: `"${invoice.company.name}" <${invoice.company.smtp_user}>`,
