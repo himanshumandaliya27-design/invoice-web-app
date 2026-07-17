@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { generateInvoicePDF } from '@/lib/generate-pdf-client'
 
 type Invoice = {
   id: string
@@ -38,13 +39,38 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
   const handleSendEmail = async (id: string) => {
     if (!confirm('Are you sure you want to send this invoice to the customer?')) return
     try {
-      const res = await fetch(`/api/invoices/${id}/send`, { method: 'POST' })
+      // 1. Fetch full invoice details
+      const invoiceRes = await fetch(`/api/invoices/${id}`)
+      if (!invoiceRes.ok) throw new Error('Failed to fetch invoice details')
+      const invoice = await invoiceRes.json()
+
+      // 2. Generate PDF client side
+      const pdfBase64 = generateInvoicePDF(invoice, 'datauristring')
+
+      // 3. Send to server
+      const res = await fetch(`/api/invoices/${id}/send`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdfBase64 })
+      })
       if (!res.ok) throw new Error('Failed to send email')
       alert('Invoice sent successfully!')
       router.refresh()
     } catch (error) {
       console.error(error)
-      alert('Error sending email. Check company SMTP settings.')
+      alert('Error sending email. Check company SMTP settings or invoice details.')
+    }
+  }
+
+  const handleDownloadPDF = async (id: string) => {
+    try {
+      const res = await fetch(`/api/invoices/${id}`)
+      if (!res.ok) throw new Error('Failed to fetch invoice details')
+      const invoice = await res.json()
+      generateInvoicePDF(invoice, 'download')
+    } catch (error) {
+      console.error(error)
+      alert('Error generating PDF.')
     }
   }
 
@@ -117,15 +143,13 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
                     </td>
                     <td className="py-md px-lg text-right">
                       <div className="flex justify-end space-x-sm">
-                        <a 
-                          href={`/api/invoices/${invoice.id}/pdf`} 
-                          target="_blank"
-                          rel="noreferrer"
+                        <button 
+                          onClick={() => handleDownloadPDF(invoice.id)}
                           className="text-secondary p-2 rounded hover:bg-surface-container border border-transparent hover:border-secondary transition-all"
                           title="Download PDF"
                         >
                           <span className="material-symbols-outlined text-[20px]">picture_as_pdf</span>
-                        </a>
+                        </button>
                         <button 
                           className="text-primary p-2 rounded hover:bg-surface-container border border-transparent hover:border-primary transition-all"
                           onClick={() => handleSendEmail(invoice.id)}
