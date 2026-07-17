@@ -36,12 +36,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   secret: process.env.AUTH_SECRET || "fallback_secret_for_development_only_12345",
   providers,
+  pages: {
+    signIn: '/login',
+  },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       const isApiAuthRoute = nextUrl.pathname.startsWith('/api/auth')
+      const isLoginRoute = nextUrl.pathname === '/login'
       
-      if (isApiAuthRoute) return true
+      if (isApiAuthRoute || isLoginRoute) return true
       
       if (!isLoggedIn) return false
       
