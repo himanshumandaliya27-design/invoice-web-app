@@ -8,7 +8,7 @@ export function ClientLayoutWrapper({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   
   if (pathname === '/login') {
-    return <div className="w-full min-h-screen bg-surface-container-low">{children}</div>
+    return <div className="flex-1 flex flex-col w-full min-h-screen bg-surface-container-low">{children}</div>
   }
 
   return (
