@@ -39,8 +39,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-container-low p-4">
-      <div className="w-full max-w-md bg-surface p-xl rounded-2xl shadow-sm border border-outline-variant flex flex-col items-center">
+    <div className="w-full min-h-screen flex items-center justify-center bg-surface-container-low p-4 m-0">
+      <div className="w-full max-w-md min-w-[320px] bg-surface p-xl rounded-2xl shadow-sm border border-outline-variant flex flex-col items-center">
         <div className="w-16 h-16 bg-primary-container text-primary rounded-full flex items-center justify-center mb-md">
           <span className="material-symbols-outlined text-[32px]">lock</span>
         </div>
