@@ -27,7 +27,7 @@ export default function InvoiceDetailsPage() {
   const handleSendEmail = async () => {
     if (!confirm('Are you sure you want to send this invoice?')) return
     try {
-      const pdfBase64 = generateInvoicePDF(invoice, 'datauristring')
+      const pdfBase64 = await generateInvoicePDF(invoice, 'datauristring')
       const res = await fetch(`/api/invoices/${id}/send`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,8 +46,8 @@ export default function InvoiceDetailsPage() {
     }
   }
 
-  const handleDownloadPDF = () => {
-    generateInvoicePDF(invoice, 'download')
+  const handleDownloadPDF = async () => {
+    await generateInvoicePDF(invoice, 'download')
   }
 
   // Formatting date

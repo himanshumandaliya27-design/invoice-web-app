@@ -45,7 +45,7 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
       const invoice = await invoiceRes.json()
 
       // 2. Generate PDF client side
-      const pdfBase64 = generateInvoicePDF(invoice, 'datauristring')
+      const pdfBase64 = await generateInvoicePDF(invoice, 'datauristring')
 
       // 3. Send to server
       const res = await fetch(`/api/invoices/${id}/send`, { 
@@ -67,7 +67,7 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
       const res = await fetch(`/api/invoices/${id}`)
       if (!res.ok) throw new Error('Failed to fetch invoice details')
       const invoice = await res.json()
-      generateInvoicePDF(invoice, 'download')
+      await generateInvoicePDF(invoice, 'download')
     } catch (error) {
       console.error(error)
       alert('Error generating PDF.')

@@ -22,7 +22,15 @@ export default async function CompanyPage() {
     smtp_host: c.smtp_host,
     smtp_port: c.smtp_port,
     smtp_user: c.smtp_user,
-    smtp_pass: c.smtp_pass
+    smtp_pass: c.smtp_pass,
+    bank_name: c.bank_name,
+    account_name: c.account_name,
+    account_number: c.account_number,
+    ifsc_code: c.ifsc_code,
+    branch: c.branch,
+    upi_id: c.upi_id,
+    services_list: c.services_list,
+    template_base64: c.template_base64,
   }))
 
   return <CompanyClient initialCompanies={safeCompanies} initialActiveId={currentActive || null} />

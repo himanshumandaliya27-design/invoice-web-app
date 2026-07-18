@@ -16,6 +16,14 @@ type Company = {
   smtp_port: number | null
   smtp_user: string | null
   smtp_pass: string | null
+  bank_name: string | null
+  account_name: string | null
+  account_number: string | null
+  ifsc_code: string | null
+  branch: string | null
+  upi_id: string | null
+  services_list: string | null
+  template_base64: string | null
 }
 
 const emptyCompany: Omit<Company, 'id'> = {
@@ -28,7 +36,15 @@ const emptyCompany: Omit<Company, 'id'> = {
   smtp_host: 'smtp.gmail.com',
   smtp_port: 587,
   smtp_user: '',
-  smtp_pass: ''
+  smtp_pass: '',
+  bank_name: '',
+  account_name: '',
+  account_number: '',
+  ifsc_code: '',
+  branch: '',
+  upi_id: '',
+  services_list: '',
+  template_base64: null
 }
 
 export default function CompanyClient({ 
@@ -49,6 +65,7 @@ export default function CompanyClient({
   const [isNew, setIsNew] = useState(initialCompanies.length === 0)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const templateInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   const refreshData = async () => {
@@ -74,6 +91,17 @@ export default function CompanyClient({
       const reader = new FileReader()
       reader.onloadend = () => {
         setCompany({ ...company, logo_base64: reader.result as string })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleTemplateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && company) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setCompany({ ...company, template_base64: reader.result as string })
       }
       reader.readAsDataURL(file)
     }
@@ -303,6 +331,68 @@ export default function CompanyClient({
                 <div>
                   <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">App Password</label>
                   <input type="password" name="smtp_pass" value={company.smtp_pass || ''} onChange={handleChange} placeholder="16-digit App Password" className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none shadow-inner" />
+                </div>
+              </div>
+            </div>
+
+            {/* Bank & PDF Details */}
+            <div className="bg-surface border border-outline-variant rounded-xl p-lg space-y-md shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-tertiary to-secondary"></div>
+              <h3 className="font-headline-md text-headline-md text-primary border-b border-outline-variant pb-sm font-['Aclonica']">Bank Details & Custom PDF Template</h3>
+              <p className="font-body-sm text-on-surface-variant bg-surface-variant/30 p-sm rounded border border-outline-variant/50 flex items-center gap-2">
+                <span className="material-symbols-outlined text-tertiary text-[20px]">account_balance</span>
+                These details will be automatically printed on your generated PDF invoices.
+              </p>
+
+              {/* Template Background Image Uploader */}
+              <div className="flex flex-col items-center justify-center p-md border-2 border-dashed border-outline-variant rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer mb-md" onClick={() => templateInputRef.current?.click()}>
+                  {company.template_base64 ? (
+                    <img src={company.template_base64} alt="Template Preview" className="h-32 object-contain mb-sm rounded" />
+                  ) : (
+                    <div className="h-32 flex flex-col items-center justify-center text-on-surface-variant">
+                      <span className="material-symbols-outlined text-4xl mb-2">wallpaper</span>
+                      <span className="font-label-sm block text-center mb-1">Upload Blank PDF Template Background</span>
+                      <span className="text-xs">A4 format (PNG/JPEG) recommended</span>
+                    </div>
+                  )}
+                  <input type="file" ref={templateInputRef} className="hidden" accept="image/png, image/jpeg, image/jpg" onChange={handleTemplateChange} />
+                  <span className="text-xs text-primary font-medium bg-primary-container px-3 py-1 rounded-full mt-2">Change Template Image</span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+                <div>
+                  <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">Bank Name</label>
+                  <input name="bank_name" value={company.bank_name || ''} onChange={handleChange} placeholder="e.g. State Bank of India" className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none shadow-inner" />
+                </div>
+                <div>
+                  <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">Account Name</label>
+                  <input name="account_name" value={company.account_name || ''} onChange={handleChange} placeholder="e.g. FUSION ENTERPRISE" className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none shadow-inner" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
+                <div>
+                  <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">Account Number</label>
+                  <input name="account_number" value={company.account_number || ''} onChange={handleChange} placeholder="A/C No." className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none shadow-inner" />
+                </div>
+                <div>
+                  <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">IFSC Code</label>
+                  <input name="ifsc_code" value={company.ifsc_code || ''} onChange={handleChange} placeholder="SBIN0000" className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none shadow-inner" />
+                </div>
+                <div>
+                  <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">Branch</label>
+                  <input name="branch" value={company.branch || ''} onChange={handleChange} placeholder="e.g. BIL" className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none shadow-inner" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+                <div>
+                  <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">UPI ID (For QR Code)</label>
+                  <input name="upi_id" value={company.upi_id || ''} onChange={handleChange} placeholder="merchant@upi" className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none shadow-inner" />
+                </div>
+                <div>
+                  <label className="font-label-md text-label-md text-on-surface-variant block mb-xs">Footer Services List (Optional)</label>
+                  <input name="services_list" value={company.services_list || ''} onChange={handleChange} placeholder="e.g. Event Organizer | Printing Goods" className="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none shadow-inner" />
                 </div>
               </div>
             </div>

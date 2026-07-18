@@ -19,6 +19,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         smtp_port: data.smtp_port ? Number(data.smtp_port) : null,
         smtp_user: data.smtp_user || null,
         smtp_pass: data.smtp_pass || null,
+        bank_name: data.bank_name || null,
+        account_name: data.account_name || null,
+        account_number: data.account_number || null,
+        ifsc_code: data.ifsc_code || null,
+        branch: data.branch || null,
+        upi_id: data.upi_id || null,
+        services_list: data.services_list || null,
+        template_base64: data.template_base64 || null,
       }
     })
     return NextResponse.json(company)

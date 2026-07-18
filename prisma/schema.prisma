@@ -24,6 +24,18 @@ model Company {
   smtp_user      String?
   smtp_pass      String?
 
+  // Bank details for PDF invoice
+  bank_name      String?
+  account_name   String?
+  account_number String?
+  ifsc_code      String?
+  branch         String?
+  upi_id         String?
+
+  // Footer services and background template
+  services_list  String?
+  template_base64 String? // Base64 string of the background template image
+
   created_at     DateTime  @default(now())
   updated_at     DateTime  @updatedAt
 
