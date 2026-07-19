@@ -19,6 +19,9 @@ type Invoice = {
 
 export default function InvoicesClient({ initialInvoices }: { initialInvoices: Invoice[] }) {
   const [search, setSearch] = useState('')
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewInvoiceNo, setPreviewInvoiceNo] = useState('')
   const router = useRouter()
 
   const filteredInvoices = initialInvoices.filter(i => 
@@ -72,6 +75,30 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
       console.error(error)
       alert('Error generating PDF.')
     }
+  }
+
+  const handlePreview = async (id: string, invoiceNo: string) => {
+    setPreviewLoading(true)
+    setPreviewInvoiceNo(invoiceNo)
+    setPreviewUrl(null)
+    try {
+      const res = await fetch(`/api/invoices/${id}`)
+      if (!res.ok) throw new Error('Failed to fetch invoice details')
+      const invoice = await res.json()
+      const dataUri = await generateInvoicePDF(invoice, 'datauristring') as string
+      setPreviewUrl(dataUri)
+    } catch (error) {
+      console.error(error)
+      alert('Error generating preview.')
+      setPreviewLoading(false)
+      return
+    }
+    setPreviewLoading(false)
+  }
+
+  const closePreview = () => {
+    setPreviewUrl(null)
+    setPreviewInvoiceNo('')
   }
 
   const getStatusBadge = (status: string) => {
@@ -143,6 +170,14 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
                     </td>
                     <td className="py-md px-lg text-right">
                       <div className="flex justify-end space-x-sm">
+                        {/* Preview Button */}
+                        <button 
+                          onClick={() => handlePreview(invoice.id, invoice.invoice_number)}
+                          className="text-tertiary p-2 rounded hover:bg-surface-container border border-transparent hover:border-tertiary transition-all"
+                          title="Preview Invoice"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">visibility</span>
+                        </button>
                         <button 
                           onClick={() => handleDownloadPDF(invoice.id)}
                           className="text-secondary p-2 rounded hover:bg-surface-container border border-transparent hover:border-secondary transition-all"
@@ -173,6 +208,66 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
           </table>
         </div>
       </div>
+
+      {/* PDF Preview Modal */}
+      {(previewLoading || previewUrl) && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          onClick={closePreview}
+        >
+          <div 
+            className="bg-surface rounded-2xl shadow-2xl flex flex-col w-[95vw] max-w-4xl h-[92vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-lg py-md border-b border-outline-variant bg-surface-bright">
+              <div className="flex items-center gap-sm">
+                <span className="material-symbols-outlined text-primary text-[24px]">description</span>
+                <div>
+                  <h3 className="font-title-md text-title-md font-semibold text-on-surface">Invoice Preview</h3>
+                  {previewInvoiceNo && (
+                    <p className="text-xs text-on-surface-variant">{previewInvoiceNo}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-sm">
+                {previewUrl && (
+                  <a
+                    href={previewUrl}
+                    download={`Invoice-${previewInvoiceNo}.pdf`}
+                    className="flex items-center gap-xs px-md py-sm bg-primary text-on-primary rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">download</span>
+                    Download
+                  </a>
+                )}
+                <button 
+                  onClick={closePreview}
+                  className="p-2 rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant"
+                >
+                  <span className="material-symbols-outlined text-[22px]">close</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-hidden bg-surface-container-low">
+              {previewLoading ? (
+                <div className="flex flex-col items-center justify-center h-full gap-md">
+                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-on-surface-variant font-body-md text-body-md">Generating preview...</p>
+                </div>
+              ) : previewUrl ? (
+                <iframe
+                  src={previewUrl}
+                  className="w-full h-full border-0"
+                  title={`Invoice ${previewInvoiceNo} Preview`}
+                />
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
