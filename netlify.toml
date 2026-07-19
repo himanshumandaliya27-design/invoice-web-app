@@ -4,10 +4,3 @@
 
 [build.environment]
   NODE_VERSION = "20"
-
-# Force all API routes to go through Next.js server handler
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/___netlify-server-handler"
-  status = 200
-  force = true

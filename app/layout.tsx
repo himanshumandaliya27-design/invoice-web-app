@@ -1,17 +1,34 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ClientLayoutWrapper } from './ClientLayoutWrapper'
+import { auth } from '@/auth'
+import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 export const metadata: Metadata = {
   title: 'Invoice Generator',
   description: 'Indian B2B Invoice Generation System',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Get current path from headers
+  const headersList = await headers()
+  const pathname = headersList.get('x-invoke-path') || headersList.get('x-pathname') || ''
+
+  // Public routes that don't need auth
+  const isPublicRoute = pathname === '/login' || pathname.startsWith('/api/')
+
+  if (!isPublicRoute) {
+    const session = await auth()
+    if (!session) {
+      redirect('/login')
+    }
+  }
+
   return (
     <html lang="en">
       <head>
