@@ -84,9 +84,6 @@ export function TopAppBar() {
           <span className="material-symbols-outlined text-[18px]">add</span>
           Create New
         </Link>
-        <Link href="/settings" className="hidden lg:flex px-md py-sm text-primary font-label-md text-label-md border border-primary rounded-lg hover:bg-surface-container transition-colors scale-95 duration-150">
-          Settings
-        </Link>
         <button 
           onClick={() => signOut()}
           className="hidden lg:flex px-md py-sm text-error font-label-md text-label-md border border-error rounded-lg hover:bg-error-container transition-colors scale-95 duration-150 items-center gap-xs"

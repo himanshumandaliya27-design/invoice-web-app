@@ -15,12 +15,12 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen w-full">
+    <>
       <Sidebar />
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="md:ml-64 flex flex-col min-h-screen bg-surface-container-low">
         <TopAppBar />
         {children}
       </div>
-    </div>
+    </>
   )
 }
