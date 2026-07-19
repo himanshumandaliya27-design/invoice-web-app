@@ -5,12 +5,13 @@ import type { NextRequest } from "next/server"
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Allow public routes
+  // Allow public routes - pass through without any auth check
   if (
-    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/') ||
     pathname === '/login' ||
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon')
+    pathname.startsWith('/favicon') ||
+    pathname.includes('.')
   ) {
     return NextResponse.next()
   }
@@ -30,5 +31,8 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+  // Only run proxy on page routes, NOT on api routes or static files
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
+  ],
 }
