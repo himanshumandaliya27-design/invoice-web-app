@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-// Simple proxy: redirect unauthenticated users to login
+// proxy: redirect unauthenticated users to login for page routes only
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Allow public routes - pass through without any auth check
+  // All API routes, static files and login pass through freely
   if (
     pathname.startsWith('/api/') ||
     pathname === '/login' ||
@@ -16,7 +16,7 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check for session cookie (NextAuth sets this)
+  // Check for session cookie (NextAuth v5 sets this)
   const sessionToken =
     request.cookies.get('__Secure-authjs.session-token')?.value ||
     request.cookies.get('authjs.session-token')?.value
@@ -31,7 +31,7 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Only run proxy on page routes, NOT on api routes or static files
+  // Only run on page routes - completely exclude api routes
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
   ],
